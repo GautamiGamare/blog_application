@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.pagination import PageNumberPagination
 from .models import *
 from .serializers import *
 
@@ -16,8 +17,11 @@ class posts_list(APIView):
             return Response({'status':200, 'payload': serializer.data})
         else:
             data = Post.objects.all()
-            serializer = PostSerializer(data, many=True)
-            return Response(serializer.data)
+            paginator = PageNumberPagination()
+            paginator.page_size = 1
+            paginated_queryset = paginator.paginate_queryset(data, request)
+            serializer = PostSerializer(paginated_queryset, many=True)
+            return paginator.get_paginated_response(serializer.data)
     
 class posts_update(APIView):
     authentication_classes = [TokenAuthentication]
@@ -55,8 +59,11 @@ class posts_update(APIView):
 class comments_list(APIView):
     def get(self, request):
         comment_obj = Comment.objects.all()
-        serializer = CommentSerializer(comment_obj, many=True)
-        return Response(serializer.data)
+        paginator = PageNumberPagination()
+        paginator.page_size = 1
+        paginated_queryset = paginator.paginate_queryset(comment_obj, request)
+        serializer = CommentSerializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 class comments_create(APIView):
     authentication_classes = [TokenAuthentication]
